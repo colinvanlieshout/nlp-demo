@@ -13,36 +13,43 @@ observations Colin:
 - sometimes the sentence is split up in two
 
 todo:
-- store txt file
 - imrpove conversion
 - send output to transformer
+- catch large files
 
 """
 
 
-def convertpdftotxt(path_pdf, path_txt, filename):
+def convertpdftotxt(filename, path_txt, path_pdf = None, overwrite = False):
     
     #check if already converted
     exists = check_if_txt_exists(path_txt, filename)
 
-    if exists:
-        convertedfile = os.path.join(path_txt, filename.split('.')[0]) + '.txt'
+    if exists and overwrite == False:
+        pass
+        # convertedfile = os.path.join(path_txt, filename.split('.')[0]) + '.txt'
     else:
-        filepath = os.path.join(path_pdf, filename)
+        if path_pdf != None:
+            filepath = os.path.join(path_pdf, filename)
+        else:
+            filepath = filename
         convertapi.api_secret = 'GQohrMpAMRIVg4JS'  #QKLmVCcVJHkpZ8AN
-        convertedfile = convertapi.convert('txt', {'File': filepath}, from_format = 'pdf').save_files(path_txt)
-        convertedfile = str(convertedfile[0])
+        convertapi.convert('txt', {'File': filepath}, from_format = 'pdf').save_files(path_txt)
+        # convertedfile = convertapi.convert('txt', {'File': filepath}, from_format = 'pdf').save_files(path_txt)
+        # convertedfile = str(convertedfile[0])
 
-    with open(convertedfile, encoding='utf8') as filehandle:
-        lines = filehandle.read() #use read instead of readlines
-        sent_split = nltk.sent_tokenize(lines)
+    # with open(convertedfile, encoding='utf8') as filehandle:
+    #     lines = filehandle.read() #use read instead of readlines
+    #     sent_split = nltk.sent_tokenize(lines)
+
+
     #with open(convertedfile, 'w', encoding='utf8') as filehandle:
         #lines = filter(lambda x: x.strip(), lines)
         #filehandle.writelines(lines)
         #txt = 
         #print(lines)
         #sent_split = sent_tokenize(lines)
-    return sent_split  
+    # return sent_split  
 
 def check_if_txt_exists(path_txt, filename):
     """
@@ -66,17 +73,16 @@ def check_if_txt_exists(path_txt, filename):
 
 ### Main script ###
 
-path_pdf= 'data/pdf'
-path_txt = 'data/txt'
-filename = 'tk-besluit-op-bezwaar-op-grond-van-de-wob-inzake-poch-en-stand-van-zaken-onderzoek-commissie-dossier-j-a-poch.pdf'
+# path_pdf= 'data/pdf'
+# path_txt = 'data/txt'
+# filename = 'tk-besluit-op-bezwaar-op-grond-van-de-wob-inzake-poch-en-stand-van-zaken-onderzoek-commissie-dossier-j-a-poch.pdf'
 # pdffile = 'data/pdf/tk-bijlage-scan-geanonimiseerd-besluit-en-inventarislijst-wob-zelfonderzoek-door-advocaten.pdf'
 
 # check_if_txt_exists(path_pdf, path_txt, filename)
 
-print([f for f in listdir(path_txt) if isfile(join(path_txt, f))])
-print([f for f in listdir(path_pdf) if isfile(join(path_pdf, f))])
+# convertedfilename = convertpdftotxt(filename, path_txt, path_pdf) #returns list of tokenized sentences
 
-convertedfilename = convertpdftotxt(path_pdf, path_txt, filename) #returns list of tokenized sentences
+# print(convertedfilename)
 
 # print(convertedfilename)
 

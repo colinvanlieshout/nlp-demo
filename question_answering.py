@@ -13,4 +13,4 @@ def questionAnswering(context, question):
   
   result = nlp(question=question, context=context)
 
-  return result['answer']
+  return result['answer'], result['score']
