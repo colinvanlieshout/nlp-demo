@@ -59,10 +59,10 @@ def check_if_txt_exists(path_txt, filename):
     txt_files = [f.split('.')[0] for f in listdir(path_txt) if isfile(join(path_txt, f))]
 
     if file_name in txt_files:
-        print('exists')
+        print('File already exists, pass overwrite = True if you want to overwrite')
         return True
     else:
-        print('does not exist')
+        print('File does not yet exist, is now converted and stored')
         return False
 
 
