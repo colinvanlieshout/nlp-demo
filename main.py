@@ -41,21 +41,6 @@ def main():
         #4. already answer the standard questions
         generate_question_table(initial_questions, context)
 
-        # answered_questions = []
-        # for question in initial_questions:
-        #     result, score = questionAnswering(context=context, question=question)
-        #     answered_questions.append([question, result, score])
-        #     print(answered_questions)
-
-        #     if len(answered_questions) == 2:
-        #         # answered_questions.append(question)
-        #         # print()
-        #         df = pd.DataFrame(data = answered_questions, columns = ['Vraag', 'Antwoord', 'Score'])
-        #         table = st.table(df)
-        #         # table = st.table(answered_questions)
-        #     elif len(answered_questions) > 2:
-        #         table.add_rows([answered_questions[-1]])
-
         #4. ask the question
         question = st.text_input('Wat zou u graag zelf nog willen weten?')
 
@@ -66,19 +51,23 @@ def main():
             st.write('Confidence: ' + score + '.')
 
 def generate_question_table(initial_questions, context):
+    """
+    gets a list of questions, and asks them to questionAnswering one by one based on the text (context).
+    To enhance usability results are appended to the table, such that you don't have to wait too long for something to appear.
+    """
     answered_questions = []
     for question in initial_questions:
         result, score = questionAnswering(context=context, question=question)
         answered_questions.append([question, result, score])
-        print(answered_questions)
 
+        #starting at two, because at one it transposes the table and that doesn't work well
         if len(answered_questions) == 2:
-            # answered_questions.append(question)
-            # print()
+            #starting off with a dataframe as that seems the only way to get table headers in
             df = pd.DataFrame(data = answered_questions, columns = ['Vraag', 'Antwoord', 'Score'])
             table = st.table(df)
             # table = st.table(answered_questions)
         elif len(answered_questions) > 2:
+            #add new rows
             table.add_rows([answered_questions[-1]])
 
 if __name__ == "__main__":
