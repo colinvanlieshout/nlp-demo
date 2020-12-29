@@ -10,9 +10,11 @@ def text_preprocessing(text):
 
     return text
 
-def create_ner_dict(doc):
-    NER_dict = {}
+def create_ner_dict(text):
+    text = text_preprocessing(text)
+    doc = nlp(text)
 
+    NER_dict = {}
     for ent in doc.ents:
         #many are just numbers, skip these because they are not useful
         if ent.text.isnumeric():
@@ -28,12 +30,10 @@ def create_ner_dict(doc):
     return NER_dict
 
 
-f = open("C:/Users/clieshou/PycharmProjects/nlp-demo/data/txt/tk-bijlage-wob-iccb-2-deelbbesluit-met-handtekening.txt", "r", encoding="utf8")
-text = f.read()
-text = text_preprocessing(text)
-doc = nlp(text)
+# f = open("C:/Users/clieshou/PycharmProjects/nlp-demo/data/txt/tk-bijlage-wob-iccb-2-deelbbesluit-met-handtekening.txt", "r", encoding="utf8")
+# text = f.read()
 
-print(create_ner_dict(doc))
+# print(create_ner_dict(text))
 
 
 # text = "Het gaat om Colin Lieshout, (interne) e-mailberichten en conceptteksten van of met het ministerie van Justitie en Veiligheid."
