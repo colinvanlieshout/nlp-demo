@@ -13,16 +13,6 @@ from pdftotxt import convertpdftotxt
 #streamlit run main.py
 
 initial_questions = [
-    # ['Over welk ministerie wordt er gesproken?', 'Ministerie'],
-    # ['Op welke datum is dit gepubliceerd?', 'Publicatie datum'],
-    # ['Welke besluit is er door de afzender genomen?', 'Besluit'],
-    # ['Wat is het onderwerp van het document?', 'Onderwerp'],
-    # ['Door wie is de vraag gesteld?', 'Vraag gesteld door']
-    # ['Over welk ministerie wordt er gesproken?'],
-    # ['Op welke datum is dit gepubliceerd?'],
-    # ['Welke besluit is er door de afzender genomen?'],
-    # ['Wat is het onderwerp van het document?'],
-    # ['Door wie is de vraag gesteld?']
     'Over welk ministerie wordt er gesproken?',
     'Op welke datum is dit gepubliceerd?',
     'Welke besluit is er door de afzender genomen?',
@@ -30,15 +20,7 @@ initial_questions = [
     'Door wie is de vraag gesteld?'
 ]
 
-answer_df = pd.DataFrame(columns=['Vraag', 'Antwoord'])
-
 def main():
-    """
-    succesful questions:
-    - Over welk ministerie wordt er gesproken?
-    - Op welke datum is dit gepubliceerd?
-
-    """
     st.title('Reclassering demo')
     
     #1. upload pdf file to streamlit
@@ -57,20 +39,22 @@ def main():
         context = st.text_area(label = "Wij hebben uw pdf bestand gestandaardiseerd.", value = f.read())
 
         #4. already answer the standard questions
-        answered_questions = []
-        for question in initial_questions:
-            result, score = questionAnswering(context=context, question=question)
-            answered_questions.append([question, result, score])
-            print(answered_questions)
+        generate_question_table(initial_questions, context)
 
-            if len(answered_questions) == 2:
-                # answered_questions.append(question)
-                # print()
-                df = pd.DataFrame(data = answered_questions, columns = ['Vraag', 'Antwoord', 'Score'])
-                table = st.table(df)
-                # table = st.table(answered_questions)
-            elif len(answered_questions) > 2:
-                table.add_rows([answered_questions[-1]])
+        # answered_questions = []
+        # for question in initial_questions:
+        #     result, score = questionAnswering(context=context, question=question)
+        #     answered_questions.append([question, result, score])
+        #     print(answered_questions)
+
+        #     if len(answered_questions) == 2:
+        #         # answered_questions.append(question)
+        #         # print()
+        #         df = pd.DataFrame(data = answered_questions, columns = ['Vraag', 'Antwoord', 'Score'])
+        #         table = st.table(df)
+        #         # table = st.table(answered_questions)
+        #     elif len(answered_questions) > 2:
+        #         table.add_rows([answered_questions[-1]])
 
         #4. ask the question
         question = st.text_input('Wat zou u graag zelf nog willen weten?')
@@ -81,6 +65,21 @@ def main():
             st.write('Het antwoord op uw vraag is: '+ result + '.')
             st.write('Confidence: ' + score + '.')
 
+def generate_question_table(initial_questions, context):
+    answered_questions = []
+    for question in initial_questions:
+        result, score = questionAnswering(context=context, question=question)
+        answered_questions.append([question, result, score])
+        print(answered_questions)
+
+        if len(answered_questions) == 2:
+            # answered_questions.append(question)
+            # print()
+            df = pd.DataFrame(data = answered_questions, columns = ['Vraag', 'Antwoord', 'Score'])
+            table = st.table(df)
+            # table = st.table(answered_questions)
+        elif len(answered_questions) > 2:
+            table.add_rows([answered_questions[-1]])
 
 if __name__ == "__main__":
     main()
