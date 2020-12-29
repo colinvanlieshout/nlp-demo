@@ -1,9 +1,12 @@
 ### imports
 import torch
 from transformers import pipeline
+import streamlit as st
 
 
 ### function with a string of context and a string of question
+
+@st.cache()#suppress_st_warning=True)
 def questionAnswering(context, question):
   
   ### create pipeline

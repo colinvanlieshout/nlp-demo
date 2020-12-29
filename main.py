@@ -1,9 +1,7 @@
 import streamlit as st
-# To make things easier later, we're also importing numpy and pandas for
-# working with sample data.
-import numpy as np
 import pandas as pd
 import os
+import base64
 
 #our functions
 from question_answering import questionAnswering
@@ -21,6 +19,11 @@ initial_questions = [
 ]
 
 def main():
+    """
+    fix that the whole thing reruns when clicking run
+    """
+
+    set_png_as_page_bg('dqw_background.png')
     st.title('Reclassering demo')
     
     #1. upload pdf file to streamlit
@@ -48,7 +51,7 @@ def main():
         if st.button('Run'):
             result, score = questionAnswering(context=context, question=question)
             st.write('Het antwoord op uw vraag is: '+ result + '.')
-            st.write('Confidence: ' + score + '.')
+            st.write('Confidence: ' + str(score) + '.')
 
 def generate_question_table(initial_questions, context):
     """
@@ -65,10 +68,40 @@ def generate_question_table(initial_questions, context):
             #starting off with a dataframe as that seems the only way to get table headers in
             df = pd.DataFrame(data = answered_questions, columns = ['Vraag', 'Antwoord', 'Score'])
             table = st.table(df)
-            # table = st.table(answered_questions)
         elif len(answered_questions) > 2:
             #add new rows
             table.add_rows([answered_questions[-1]])
+
+def get_base64_of_bin_file(bin_file):
+    """
+    function to read png file 
+    ----------
+    bin_file: png -> the background image in local folder
+    """
+    with open(bin_file, 'rb') as f:
+        data = f.read()
+    return base64.b64encode(data).decode()
+
+def set_png_as_page_bg(png_file):
+    """
+    function to display png as bg
+    ----------
+    png_file: png -> the background image in local folder
+    """
+    bin_str = get_base64_of_bin_file(png_file)
+    page_bg_img = '''
+    <style>
+    body {
+    background-image: url("data:image/png;base64,%s");
+    background-position-y: 100px;
+    background-size: cover;
+    background-repeat: no-repeat;
+    }
+    </style>
+    ''' % bin_str
+    
+    st.markdown(page_bg_img, unsafe_allow_html=True)
+    return
 
 if __name__ == "__main__":
     main()
