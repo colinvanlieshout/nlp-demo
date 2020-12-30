@@ -1,10 +1,10 @@
 import os
 from os import listdir
 from os.path import isfile, join
-
 import convertapi
 import nltk
 import glob
+import re
 # nltk.download('punkt') #run this the first time
 
 """
@@ -50,11 +50,39 @@ def check_if_txt_exists(path_txt, filename):
 
 def text_preprocessing(text):
     #some manual preprocessing
-    text = ' '.join(text.split()) #remove occurences of multiple white space
-    text = text.replace('\n', ' ')
     text = text.replace('lij k', 'lijk')
     text = text.replace('ministerie van', 'Ministerie van')
+    text = regular_expressions(text)
+
+    return text
+
+def regular_expressions(text):
+    """
+    doing a few regular expressions here for text processing. Not much experience with this so may be innefficient.
+    Somehow it doesn't find everything at once, so I am doing a loop until no improvements are found anymore.    
+    """
+    prev_len = len(text)-1 #otherwise they are the same at the start
+    while prev_len != len(text):
+        prev_len = len(text)
+
+        # removes all ICCbnumber occurences. difference is necessary because the numbers change when deleting something
+        difference = 0
+        for match in re.finditer('(?<= ICCb)\w+', text):
+            text = text[:match.start()-4] + text[match.end():]
+            difference += match.end() - match.start()
+
+        #remove occurences of e.g. Pagina 1 van 5
+        difference = 0
+        for match in re.finditer('(?<=Pagina)\s\d+\s\w+\s\d+', text):
+            text = text[:match.start()-6] + text[match.end():]
+            difference += match.end() - match.start()
+
+        new_lines = re.compile('\n{2,9}')
+        text = re.sub(new_lines, '\n\n\n', text.strip())
 
     return text
 
 
+# f = open("C:/Users/clieshou/PycharmProjects/nlp-demo/data/txt/tk-bijlage-wob-iccb-2-deelbbesluit-met-handtekening.txt", "r", encoding="utf8")
+# text = f.read()
+# text = text[:3000]

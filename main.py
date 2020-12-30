@@ -74,6 +74,7 @@ def main():
     st.title('Reclassering demo')
     
     #1. upload pdf file to streamlit
+    st.header("PDF verwerking")
     uploaded_file = st.file_uploader('Upload de PDF file waarin u informatie wilt zoeken')
 
     if uploaded_file != None:
@@ -91,9 +92,11 @@ def main():
         #3. display txt in streamlit
         context = st.text_area(label = "Wij hebben uw pdf bestand gestandaardiseerd.", value = text)
         # #4. already answer the standard questions
-        generate_question_table(initial_questions, context)
+        # generate_question_table(initial_questions, context)
+
 
         # #5. ask the question
+        st.header("Vragen beantoorden")
         question = st.text_input('Wat zou u graag zelf nog willen weten?')
 
         # #6. answer the question
@@ -102,6 +105,7 @@ def main():
             st.write('Het antwoord op uw vraag is: '+ result + '.')
             st.write('Score: ' + str(round(score, 2)) + '.')
 
+        st.header("Entiteiten extraheren en onderzoekn")
         # #7. selectbox for NER labels
         NER_dict = create_ner_dict(text)
 
