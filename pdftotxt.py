@@ -48,5 +48,13 @@ def check_if_txt_exists(path_txt, filename):
         print('File does not yet exist, is now converted and stored')
         return False
 
+def text_preprocessing(text):
+    #some manual preprocessing
+    text = ' '.join(text.split()) #remove occurences of multiple white space
+    text = text.replace('\n', ' ')
+    text = text.replace('lij k', 'lijk')
+    text = text.replace('ministerie van', 'Ministerie van')
+
+    return text
 
 

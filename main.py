@@ -1,24 +1,66 @@
 import streamlit as st
 import pandas as pd
 import os
-import base64
 import re
+import base64
 
 #our functions
 from question_answering import questionAnswering
-from pdftotxt import convertpdftotxt
-from NER import create_ner_dict
+from pdftotxt import convertpdftotxt, text_preprocessing
+from NER import create_ner_dict, find_sentences_with_entity
 
 #conda activate nlp_venv
 #streamlit run main.py
 
 initial_questions = [
-    'Over welk ministerie wordt er gesproken?',
+    # 'Over welk ministerie wordt er gesproken?',
     'Op welke datum is dit gepubliceerd?',
-    'Welke besluit is er door de afzender genomen?',
+    # 'Welke besluit is er door de afzender genomen?',
     'Wat is het onderwerp van het document?',
     'Door wie is de vraag gesteld?'
 ]
+
+# interesting_ner_labels = {
+#     'PERSON' : 'People, including fictional.',
+#     'NORP'	: 'Nationalities or religious or political groups.',
+#     # FAC	Buildings, airports, highways, bridges, etc.    
+#     'ORG' :	'Companies, agencies, institutions, etc.',
+#     'GPE'	: 'Countries, cities, states.',
+#     # LOC	Non-GPE locations, mountain ranges, bodies of water.
+#     'PRODUCT'	: 'Objects, vehicles, foods, etc. (Not services.)',
+#     'EVENT' :	'Named hurricanes, battles, wars, sports events, etc.', 
+#     # WORK_OF_ART	Titles of books, songs, etc.
+#     # 'LAW'	: 'Named documents made into laws.'
+#     'LANGUAGE'	: 'Any named language.',
+#     'DATE'	: 'Absolute or relative dates or periods.',
+#     'TIME'	: 'Times smaller than a day.',
+#     # PERCENT	Percentage, including ”%“.
+#     'MONEY'	: 'Monetary values, including unit.',
+#     # 'QUANTITY'	: 'Measurements, as of weight or distance.',
+#     # 'ORDINAL'	: '“first”, “second”, etc.',
+#     # 'CARDINAL'	: 'Numerals that do not fall under another type.'
+# }
+
+interesting_ner_labels = {
+    'Landen, steden, staten.': 'GPE',
+    'Personen.' : 'PERSON',
+    'Nationaliteiten en religeuze of politieke groepen.': 'NORP',
+    'Gebouwen, vliegvelden, en infrastructuur.' : 'FAC',
+    'Organisaties.': 'ORG',
+    # 'Non-GPE locations, mountain ranges, bodies of water.': 'LOC',	
+    'Objecten, voertuigen, etenswaren, etc. (Niet services).': 'PRODUCT',
+    'Weer, oorlog, sport of andere evenementen.': 'EVENT', 
+    #'Titles of books, songs, etc.':  'WORK_OF_ART',
+    # 'Named documents made into laws.': 'LAW',
+    'Taal.': 'LANGUAGE',
+    'Absolute of relatieve datum of periode.':'DATE',
+    'Tijd.': 'TIME',
+    # 'Percentage, including ”%“.' : 'PERCENT'
+    'Geld'	: 'MONEY',
+    # 'Measurements, as of weight or distance.':'QUANTITY',
+    # '“first”, “second”, etc.':'ORDINAL',
+    # 'CARDINAL'	: 'Numerals that do not fall under another type.'
+}
 
 def main():
     """
@@ -26,6 +68,8 @@ def main():
 
     #this is just to make debugging easier
     print(str('-'*50))
+
+    #styling
     set_png_as_page_bg('dqw_background.png')
     st.title('Reclassering demo')
     
@@ -41,59 +85,47 @@ def main():
         #3. read txt file
         file_location = os.path.join(path_txt, uploaded_file.name.split('.')[0])+ '.txt'
         f = open(file_location, "r", encoding="utf8")
+        text = f.read()
+        text = text_preprocessing(text)
         
         #3. display txt in streamlit
-        context = st.text_area(label = "Wij hebben uw pdf bestand gestandaardiseerd.", value = f.read())
+        context = st.text_area(label = "Wij hebben uw pdf bestand gestandaardiseerd.", value = text)
         # #4. already answer the standard questions
         generate_question_table(initial_questions, context)
 
-        # #4. ask the question
+        # #5. ask the question
         question = st.text_input('Wat zou u graag zelf nog willen weten?')
 
-        # #5. answer the question
+        # #6. answer the question
         if st.button('Run'):
             result, score = questionAnswering(context=context, question=question)
             st.write('Het antwoord op uw vraag is: '+ result + '.')
-            st.write('Confidence: ' + str(score) + '.')
+            st.write('Score: ' + str(round(score, 2)) + '.')
 
-        # #6. selectbox for NER labels
-        #this thing cost me a lot of debuggin time. Apparently you cannot use f.read() twice without reloading the file (damnit)
-        f = open(file_location, "r", encoding="utf8")
-        text = f.read()
+        # #7. selectbox for NER labels
         NER_dict = create_ner_dict(text)
 
-        labels = list(NER_dict.keys())
+        # labels = list(NER_dict.keys())
+        # selection = st.selectbox('Kies de soort entiteit welke u wilt inspecteren', labels)
+
+        #do a check that the labels are actually in the dict, otherwise don't present it
+        labels = list(interesting_ner_labels.keys())
         selection = st.selectbox('Kies de soort entiteit welke u wilt inspecteren', labels)
+        label = interesting_ner_labels[selection]
            
-        #7 find all occurences of the chosen word, with surrounding words
-        st.write(str(list(NER_dict[selection].keys())))
+        #8 find and display the sentences in which the words appear
+        st.write(str(list(NER_dict[label].keys())))
 
-        question2 = st.text_input('Welke entiteit zou u graag in zinsverband zien?')
+        requested_entity = st.text_input('Welke entiteit zou u graag in zinsverband zien?')
+        if len(requested_entity) != 0:
+            accepted_splits = find_sentences_with_entity(requested_entity, text)
 
-        if len(question2) != 0:
-            for m in re.finditer(question2, text):
-                # print(m.start())
-
-                accepted_splits = []
-
-                #goal here is to get the sentence itself instead of cutting it off in the middle, doesn't work perfectly yet
-                search_area = text[m.start()-300:m.end()+300]
-                splits = search_area.split('.')
-                # splits = splits[1:-1]
-                for split in splits:
-                    if question2 in split:
-                        if split not in accepted_splits:
-                            # st.write(split)
-                            accepted_splits.append(split)
-                
-                accepted_splits = list(set(accepted_splits))
-                
-                for split in accepted_splits:
-                    st.write(split)
-                print(accepted_splits)
-
-                st.write('==============')
-
+            #iterate over accepted splits and print them in a nice format
+            for i, split in enumerate(accepted_splits, 1):
+                st.write("*Voorbeeld ", str(i), "*")
+                #make the relevant word bold
+                split = split.replace(requested_entity, "**" + requested_entity + "**")
+                st.write(split + '.')
 
 
 def generate_question_table(initial_questions, context):

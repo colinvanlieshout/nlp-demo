@@ -1,17 +1,9 @@
+import re
+import streamlit as st
 import spacy
 nlp = spacy.load("nl_core_news_md")
 
-def text_preprocessing(text):
-    #some manual preprocessing
-    text = ' '.join(text.split()) #remove occurences of multiple white space
-    text = text.replace('\n', ' ')
-    text = text.replace('lij k', 'lijk')
-    text = text.replace('ministerie van', 'Ministerie van')
-
-    return text
-
 def create_ner_dict(text):
-    text = text_preprocessing(text)
     doc = nlp(text)
 
     NER_dict = {}
@@ -29,6 +21,35 @@ def create_ner_dict(text):
 
     return NER_dict
 
+def find_sentences_with_entity(requested_entity, text):        
+    accepted_splits = []
+    
+    for m in re.finditer(requested_entity, text):
+        
+        # print(m.start())
+
+        #goal here is to get the sentence itself instead of cutting it off in the middle, doesn't work perfectly yet
+        search_area = text[m.start()-300:m.end()+300]
+        splits = search_area.split('.')
+        # splits = splits[1:-1]
+        for split in splits:
+            if requested_entity in split:
+                if split not in accepted_splits:
+                    # st.write(split)
+                    accepted_splits.append(split)
+    
+    accepted_splits = list(set(accepted_splits))
+
+    return accepted_splits
+
+# def display_sentences_with_entity(requested_entity, text):
+#     accepted_splits = find_sentences_with_entity(requested_entity, text)
+
+#     for i, split in enumerate(accepted_splits):
+#         st.write("*Voorbeeld ", str(i), "*")
+#         #make the relevant word bold
+#         split = split.replace(requested_entity, "**" + requested_entity + "**")
+#         st.write(split + '.')
 
 # f = open("C:/Users/clieshou/PycharmProjects/nlp-demo/data/txt/tk-bijlage-wob-iccb-2-deelbbesluit-met-handtekening.txt", "r", encoding="utf8")
 # text = f.read()
