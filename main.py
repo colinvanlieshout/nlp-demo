@@ -20,27 +20,6 @@ initial_questions = [
     'Door wie is de vraag gesteld?'
 ]
 
-# interesting_ner_labels = {
-#     'PERSON' : 'People, including fictional.',
-#     'NORP'	: 'Nationalities or religious or political groups.',
-#     # FAC	Buildings, airports, highways, bridges, etc.    
-#     'ORG' :	'Companies, agencies, institutions, etc.',
-#     'GPE'	: 'Countries, cities, states.',
-#     # LOC	Non-GPE locations, mountain ranges, bodies of water.
-#     'PRODUCT'	: 'Objects, vehicles, foods, etc. (Not services.)',
-#     'EVENT' :	'Named hurricanes, battles, wars, sports events, etc.', 
-#     # WORK_OF_ART	Titles of books, songs, etc.
-#     # 'LAW'	: 'Named documents made into laws.'
-#     'LANGUAGE'	: 'Any named language.',
-#     'DATE'	: 'Absolute or relative dates or periods.',
-#     'TIME'	: 'Times smaller than a day.',
-#     # PERCENT	Percentage, including ”%“.
-#     'MONEY'	: 'Monetary values, including unit.',
-#     # 'QUANTITY'	: 'Measurements, as of weight or distance.',
-#     # 'ORDINAL'	: '“first”, “second”, etc.',
-#     # 'CARDINAL'	: 'Numerals that do not fall under another type.'
-# }
-
 interesting_ner_labels = {
     'Landen, steden, staten.': 'GPE',
     'Personen.' : 'PERSON',
@@ -64,6 +43,8 @@ interesting_ner_labels = {
 
 def main():
     """
+    All streamlit code lives within the function. I tried to put as much of the other code as possible outside of it.
+    For quick testing comment out 4 and 5
     """
 
     #this is just to make debugging easier
@@ -92,28 +73,23 @@ def main():
         #3. display txt in streamlit
         context = st.text_area(label = "Wij hebben uw pdf bestand gestandaardiseerd.", value = text)
         # #4. already answer the standard questions
-        # generate_question_table(initial_questions, context)
-
+        generate_question_table(initial_questions, context)
 
         # #5. ask the question
         st.header("Vragen beantoorden")
         question = st.text_input('Wat zou u graag zelf nog willen weten?')
 
-        # #6. answer the question
+        #6. answer the question
         if st.button('Run'):
             result, score = questionAnswering(context=context, question=question)
             st.write('Het antwoord op uw vraag is: '+ result + '.')
             st.write('Score: ' + str(round(score, 2)) + '.')
 
         st.header("Entiteiten extraheren en onderzoekn")
-        # #7. selectbox for NER labels
-        NER_dict = create_ner_dict(text)
+        #7. selectbox for NER labels
+        NER_dict = create_ner_dict(text)    
+        labels = get_selectbox_labels(NER_dict, interesting_ner_labels)  
 
-        # labels = list(NER_dict.keys())
-        # selection = st.selectbox('Kies de soort entiteit welke u wilt inspecteren', labels)
-
-        #do a check that the labels are actually in the dict, otherwise don't present it
-        labels = list(interesting_ner_labels.keys())
         selection = st.selectbox('Kies de soort entiteit welke u wilt inspecteren', labels)
         label = interesting_ner_labels[selection]
            
@@ -131,11 +107,19 @@ def main():
                 split = split.replace(requested_entity, "**" + requested_entity + "**")
                 st.write(split + '.')
 
+def get_selectbox_labels(NER_dict, interesting_ner_labels):
+    """
+    finds intersection between what labels are in the dict, and what we are interested in, 
+    and based on that determines the labels for the selection box
+    """
+    intersection = list(set(NER_dict.keys()) & set(interesting_ner_labels.values())) 
+
+    return list({k: v for k, v in interesting_ner_labels.items() if v in intersection}.keys())
 
 def generate_question_table(initial_questions, context):
     """
     gets a list of questions, and asks them to questionAnswering one by one based on the text (context).
-    To enhance usability results are appended to the table, such that you don't have to wait too long for something to appear.
+    This process takes a while. Therefore, to enhance usability results are appended to the table, such that you don't have to wait too long for something to appear.
     """
     answered_questions = []
     for question in initial_questions:

@@ -8,18 +8,27 @@ import re
 # nltk.download('punkt') #run this the first time
 
 """
-observations Colin:
-- sometimes the sidebar containing address and such is mixed in with the text
-- sometimes the sentence is split up in two
-
-todo:
-- imrpove conversion
-- catch large files
+We could still invest some time in optimizing the conversion
 """
 
 
 def convertpdftotxt(filename, path_txt, path_pdf = None, overwrite = False):
+    """ 
+    Takes a pdf file and converts it into txt, using convertapi. Stores it locally.
+
+    parameters:
+    - filename: ...pdf
+    - path_txt: where does the file need to be stored
+    - path_pdf: None by default as we upload in Streamlit
+    - overwrite: in case we optimize the conversion tool, we can overwrite existing files
+    """
     
+    if path_pdf!= None:
+        if not os.path.exists(path_pdf):
+            os.makedirs(os.path.join(path_pdf, filename))
+    if not os.path.exists(path_pdf):
+        os.makedirs(os.path.join(path_txt, filename))
+
     #check if already converted
     exists = check_if_txt_exists(path_txt, filename)
 
@@ -35,8 +44,10 @@ def convertpdftotxt(filename, path_txt, path_pdf = None, overwrite = False):
         convertapi.convert('txt', {'File': filepath}, from_format = 'pdf').save_files(path_txt)
 
 def check_if_txt_exists(path_txt, filename):
+
     """
-    doing this to save API credits, if you want to overwrite set overwrite to true
+    As API credits for conversionapi are limited, we don't want to convert each time we run. 
+    Therefore, this function checks whether there is already a processed file for the pdf.
     """
     file_name = filename.split('.')[0]
     txt_files = [f.split('.')[0] for f in listdir(path_txt) if isfile(join(path_txt, f))]
@@ -49,8 +60,13 @@ def check_if_txt_exists(path_txt, filename):
         return False
 
 def text_preprocessing(text):
+    """
+    To make the NLP task easier we do some preprocessing.
+    It just takes a text, applies some functions, and returns the text/.
+    """
+
     #some manual preprocessing
-    text = text.replace('lij k', 'lijk')
+    text = text.replace('lij k', 'lijk') #there are some mistransformations where there is a space in the middle of the word. There are some other occurences but this was most frequent.
     text = text.replace('ministerie van', 'Ministerie van')
     text = regular_expressions(text)
 

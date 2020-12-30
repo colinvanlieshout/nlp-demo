@@ -8,6 +8,11 @@ import streamlit as st
 
 @st.cache()#suppress_st_warning=True)
 def questionAnswering(context, question):
+  """
+  receives a question and the context based on BERT Squad two for Dutch question answering
+
+  returns answer and confidence score
+  """
   
   ### create pipeline
   nlp = pipeline("question-answering", 
