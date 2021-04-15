@@ -23,10 +23,10 @@ def convertpdftotxt(filename, path_txt, path_pdf = None, overwrite = False):
     - overwrite: in case we optimize the conversion tool, we can overwrite existing files
     """
     
-    if path_pdf!= None:
+    if path_pdf != None:
         if not os.path.exists(path_pdf):
             os.makedirs(os.path.join(path_pdf, filename))
-    if not os.path.exists(path_pdf):
+    if not os.path.exists(path_txt):
         os.makedirs(os.path.join(path_txt, filename))
 
     #check if already converted
@@ -40,7 +40,7 @@ def convertpdftotxt(filename, path_txt, path_pdf = None, overwrite = False):
             filepath = os.path.join(path_pdf, filename)
         else:
             filepath = filename
-        convertapi.api_secret = 'GQohrMpAMRIVg4JS'  #QKLmVCcVJHkpZ8AN
+        convertapi.api_secret = 'lQuFRRSxR70fEJ6x'  #QKLmVCcVJHkpZ8AN
         convertapi.convert('txt', {'File': filepath}, from_format = 'pdf').save_files(path_txt)
 
 def check_if_txt_exists(path_txt, filename):
@@ -89,10 +89,11 @@ def regular_expressions(text):
 
         #remove occurences of e.g. Pagina 1 van 5
         difference = 0
-        for match in re.finditer('(?<=Pagina)\s\d+\s\w+\s\d+', text):
+        for match in re.finditer('(?<=Pagina)\s+\d+\s+\w+\s+\d+', text):
             text = text[:match.start()-6] + text[match.end():]
             difference += match.end() - match.start()
 
+        #removes empty sentences if there are more than 2 at once
         new_lines = re.compile('\n{2,9}')
         text = re.sub(new_lines, '\n\n\n', text.strip())
 

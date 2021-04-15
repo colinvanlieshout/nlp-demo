@@ -26,19 +26,13 @@ interesting_ner_labels = {
     'Nationaliteiten en religeuze of politieke groepen.': 'NORP',
     'Gebouwen, vliegvelden, en infrastructuur.' : 'FAC',
     'Organisaties.': 'ORG',
-    # 'Non-GPE locations, mountain ranges, bodies of water.': 'LOC',	
     'Objecten, voertuigen, etenswaren, etc. (Niet services).': 'PRODUCT',
     'Weer, oorlog, sport of andere evenementen.': 'EVENT', 
-    #'Titles of books, songs, etc.':  'WORK_OF_ART',
-    # 'Named documents made into laws.': 'LAW',
     'Taal.': 'LANGUAGE',
     'Absolute of relatieve datum of periode.':'DATE',
     'Tijd.': 'TIME',
-    # 'Percentage, including ”%“.' : 'PERCENT'
     'Geld'	: 'MONEY',
-    # 'Measurements, as of weight or distance.':'QUANTITY',
-    # '“first”, “second”, etc.':'ORDINAL',
-    # 'CARDINAL'	: 'Numerals that do not fall under another type.'
+    # 'Non-GPE locations, mountain ranges, bodies of water.': 'LOC', 'Titles of books, songs, etc.':  'WORK_OF_ART', 'Named documents made into laws.': 'LAW', 'Percentage, including ”%“.' : 'PERCENT', 'Measurements, as of weight or distance.':'QUANTITY', '“first”, “second”, etc.':'ORDINAL', 'CARDINAL'	: 'Numerals that do not fall under another type.'
 }
 
 def main():
@@ -72,10 +66,11 @@ def main():
         
         #3. display txt in streamlit
         context = st.text_area(label = "Wij hebben uw pdf bestand gestandaardiseerd.", value = text)
-        # #4. already answer the standard questions
+        
+        #4. already answer the standard questions
         generate_question_table(initial_questions, context)
 
-        # #5. ask the question
+        #5. ask the question
         st.header("Vragen beantoorden")
         question = st.text_input('Wat zou u graag zelf nog willen weten?')
 
@@ -86,6 +81,7 @@ def main():
             st.write('Score: ' + str(round(score, 2)) + '.')
 
         st.header("Entiteiten extraheren en onderzoekn")
+        
         #7. selectbox for NER labels
         NER_dict = create_ner_dict(text)    
         labels = get_selectbox_labels(NER_dict, interesting_ner_labels)  
